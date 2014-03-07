@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -13,9 +14,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.io.File;
 
 import norbert.NoRobotClient;
 
+import org.apache.lucene.analysis.charfilter.HTMLStripCharFilter;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
@@ -34,7 +37,7 @@ public class PageWorkerThread extends Thread {
 	final boolean behaviourSkipLinksWithSubdomain = true;
 	final boolean behaviourStayInDomain = false;
 	final boolean behaviourSkipOnCacheMiss = false;
-	final boolean behaviourCacheRequests = true;
+	final boolean behaviourCacheRequests = false;
 	final boolean verbose = false;
 	final String cachePath;
 	final String seedHost;
@@ -263,6 +266,7 @@ public class PageWorkerThread extends Thread {
 			}
 
 			page.source = response.toString(); // set the page source
+			page.cleanSource = stripHtml(page.source);
 
 			if (behaviourCacheRequests)
 				storeCache(page);
@@ -300,6 +304,34 @@ public class PageWorkerThread extends Thread {
 			return false; // file not found
 		}
 		return true;
+	}
+
+	// htmlCharFilter.
+	// http://massapi.com/class/ht/HTMLStripCharFilter.html
+	public static String stripHtml(String src) {
+		HTMLStripCharFilter htmlCharFilter = new HTMLStripCharFilter(
+				new StringReader(src));
+		StringBuilder out;
+
+		out = new StringBuilder();
+		char[] cbuf = new char[1024 * 10];
+		try {
+			while (true) {
+				int count;
+
+				count = htmlCharFilter.read(cbuf);
+
+				if (count == -1)
+					break; // end of stream mark is -1
+				if (count > 0)
+					out.append(cbuf, 0, count);
+			}
+
+			htmlCharFilter.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return out.toString();
 	}
 
 }

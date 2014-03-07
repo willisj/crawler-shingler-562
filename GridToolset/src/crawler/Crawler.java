@@ -48,7 +48,6 @@ public class Crawler extends Thread {
 	public Thread topoThread;
 	private boolean notAddingNew = false;
 	private final boolean displayStatus, verbose;
-	String sessionPath;
 	String seedHost;
 	String storePath;
 	final int maxDomainPerCrawl;
@@ -62,33 +61,24 @@ public class Crawler extends Thread {
 	 *             invalid seed url
 	 */
 
-	public Crawler(String seed, String storePath, String sessionPath,
+	public Crawler(String seed, String storePath, 
 			String urlPoolFile, boolean displayStatus, boolean verbose,
 			int maxDomainPerCrawl, String cachePath)
 			throws MalformedURLException {
 
 		this.displayStatus = displayStatus;
 		this.verbose = displayStatus && verbose;
-		this.sessionPath = sessionPath;
 		this.maxDomainPerCrawl = maxDomainPerCrawl;
 		this.cachePath = cachePath;
 		this.storePath = storePath;
-
-		// prepare session directory
-		File currentSessionFolder = new File(sessionPath);
-		if (currentSessionFolder.exists()) {
-			util.writeLog("Session Directory already exists: " + sessionPath,
-					true);
-			return;
-		}
-		currentSessionFolder.mkdir();
 
 		// load seen urls
 		if (displayStatus)
 			util.writeLog("Loading seen URLs");
 		seenUrls = new ConcurrentSkipListSet<String>();
-		loadSeenURLs(new File(storePath));
-
+	
+		//TODO: load seen URLS from file
+		
 		if (displayStatus) {
 			util.writeLog("Loaded " + seenUrls.size() + " seen urls");
 			util.writeLog("Loading URL Pool");
@@ -102,9 +92,9 @@ public class Crawler extends Thread {
 			util.writeLog("Populated URL pool with " + urlPool.size()
 					+ " Domains and " + urlPoolSize + " URLs");
 
-		topo = new TopologyOutputController(new File(sessionPath
+		topo = new TopologyOutputController(new File(storePath
 				+ File.separator + "TopologyLinkFile"), new File(
-				sessionPath + File.separator + "TopologyURLFile"));
+						storePath + File.separator + "TopologyURLFile"));
 
 		PageLW seedPage = new PageLW();
 		seedPage.setPage(seed);
@@ -155,7 +145,7 @@ public class Crawler extends Thread {
 		PrintWriter writer;
 		crawlerRunning.set(false);
 		try {
-			writer = new PrintWriter(sessionPath + File.separator
+			writer = new PrintWriter(storePath + File.separator
 					+ "urlPool", "UTF-8");
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			e.printStackTrace();

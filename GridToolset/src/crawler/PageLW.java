@@ -17,8 +17,9 @@ public class PageLW implements Serializable {
 	public String urlHash;
 	public String host; // todo: refactor this to 'host'
 	public String source;
+	public String cleanSource;
 	public int depth = 0;
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	public Vector<PageLW> children = new Vector<PageLW>();
 

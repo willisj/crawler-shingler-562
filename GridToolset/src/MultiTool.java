@@ -12,12 +12,15 @@
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import crawler.PageLW;
+import toolset.CrawlerIface;
 import toolset.ShingleComparator;
 import toolset.Shingler;
 
@@ -34,13 +37,35 @@ public class MultiTool {
 
 		final String helpBlock = "Crawler Shingler Tool -- V 0.1 \n\n"
 				+ "\tUSAGE\n"
-				+ "\t\tjava -jar MultiTool.jar crawl <seed> <runtime (min)>\n"
-				+ "\t\tjava -jar MultiTool.jar shingle <path-to-file> \n"
+				+ "\t\tjava -jar MultiTool.jar crawl <seed> <sessionPath> <urlPoolFile> <seenURLsFile> \n"
+				+ "\t\tjava -jar MultiTool.jar shingle <path-to-file>.pgf \n"
 				+ "\t\tjava -jar MultiTool.jar compare <path-to-file-1> <path-to-file-2>";
 
 		if (args.length > 0) {
 
 			if (args[0].equals("crawl")) {
+
+				if (new File(args[2]).exists()) // check that the file exists
+					System.err.println("Error: store path already exists \""
+							+ args[2] + "\"");
+				else if (!new File(args[3]).exists()) // check that the file
+														// exists
+					System.err.println("Error: file not found \"" + args[3]
+							+ "\"");
+				else if (!new File(args[4]).exists()) // check that the file
+														// exists
+					System.err.println("Error: file not found \"" + args[4]
+							+ "\"");
+				else {
+					new File(args[2]).mkdirs();
+
+					try {
+						CrawlerIface.startCrawler(args[1], args[2], args[3],
+								args[4], 1, 5);
+					} catch (MalformedURLException e) {
+						System.err.println("Bad seed URL.");
+					}
+				}
 
 			} else if (args[0].equals("shingle")) {
 
@@ -51,16 +76,10 @@ public class MultiTool {
 				else if (Integer.valueOf(args[2]) <= 0)
 					System.err.println("Error: invalid shingle size");
 				else {
-					try {
-						for (String s : Shingler.shingle(
-								readFile(args[1], StandardCharsets.UTF_8),
-								Integer.valueOf(args[2])))
-							System.out.println(s);
-					} catch (IOException e) {
-						System.err
-								.println("There was a problem reading from file: "
-										+ e.getMessage());
-					}
+					PageLW page = PageLW.load(new File(args[1]));
+					for (String s : Shingler.shingle(page.cleanSource,
+							Integer.valueOf(args[2])))
+						System.out.println(s);
 				}
 			} else if (args[0].equals("compare")) {
 				// SHINGLE MODE

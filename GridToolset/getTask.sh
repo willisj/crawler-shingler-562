@@ -17,8 +17,8 @@ wget https://github.com/willisj/crawler-shingler-562/raw/master/GridToolset/Mult
 echo "Downloading demo script ..."
 wget https://raw.github.com/willisj/crawler-shingler-562/master/GridToolset/run.sh 
 
-echo "Downloading testFile"
-wget https://raw.github.com/willisj/crawler-shingler-562/master/GridToolset/testFile
+echo "Downloading the test file"
+wget https://raw.github.com/willisj/crawler-shingler-562/master/GridToolset/1591C3BFB24BC0E6F799AC27CEF9533C.pgf
 
 cd ..
 
