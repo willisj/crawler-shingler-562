@@ -45,7 +45,7 @@ public class MultiTool {
 
 			if (args[0].equals("crawl")) {
 
-				if (new File(args[1]).exists()) // check that the file exists
+				if (new File(args[1]).exists()) // check that the session path doesn't exist
 					System.err.println("Error: store path already exists \""
 							+ args[2] + "\"");
 				else if (!new File(args[2]).exists()) // check that the file

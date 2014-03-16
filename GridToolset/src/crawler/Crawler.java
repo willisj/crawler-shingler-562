@@ -52,7 +52,7 @@ public class Crawler extends Thread {
 	String seedHost;
 	String storePath;
 	final int maxDomainPerCrawl;
-	public int threadTimeout = 60;// in seconds
+	public int threadTimeout = 10;// in seconds
 	String cachePath;
 
 	/**
@@ -91,6 +91,7 @@ public class Crawler extends Thread {
 		if (displayStatus)
 			util.writeLog("Populated URL pool with " + urlPool.size()
 					+ " Domains and " + urlPoolSize + " URLs");
+		util.writeLog("DiP = Domains in Pool");
 
 		topo = new TopologyOutputController(new File(storePath + File.separator
 				+ "TopologyLinkFile"), new File(storePath + File.separator
@@ -285,10 +286,16 @@ public class Crawler extends Thread {
 						}
 					}
 					polledPage = pwt.getKey().pagesOut.poll();
-					if (poolSize % 20 == 0)
-						util.writeLog("Requested Pages: "
-								+ requestedPages.size() + "\tPool Size: "
-								+ poolSize + "\tDomains: " + urlPool.size());
+
+					if (crawlerRunning.get() && poolSize == 0) {
+						crawlerRunning.set(false);
+					}
+
+					if (poolSize % 5 == 0)
+						util.writeLog("Req: " + requestedPages.size()
+								+ "\tPool: " + poolSize + "\tDIP: "
+								+ urlPool.size() + "\tThrd: "
+								+ workerThreads.size());
 
 				}
 
@@ -322,10 +329,11 @@ public class Crawler extends Thread {
 		}
 
 		// display the current cache size
-		if (displayStatus && requestedPages.size() > 0)
-			util.writeLog("Cache Size: " + (util.folderSize(cachePath) / 1024)
-					/ 1024 + "MB");
+		// if (displayStatus && requestedPages.size() > 0)
+		// util.writeLog("Cache Size: " + (util.folderSize(cachePath) / 1024) /
+		// 1024 + "MB");
 
+		topoThread.stop();
 		return requestedPages;
 	}
 

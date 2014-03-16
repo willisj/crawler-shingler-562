@@ -23,6 +23,7 @@ public class CrawlerIface {
 
 		Crawler crawler = new Crawler(null, storePath, urlPoolFile, true, false,
 				maxDomainPerCrawl, null);
+		
 		crawler.crawl(maxDepth, threads);
 	}
 }
