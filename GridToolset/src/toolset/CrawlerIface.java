@@ -16,13 +16,13 @@ public class CrawlerIface {
 	 * 
 	 * */
 
-	public static void startCrawler(String seed, String storePath,
-			String urlPoolFile, String seenURLsPool, int maxDepth,int threads)
+	public static void startCrawler(String storePath, String urlPoolFile,
+			String seenURLsPool, int maxDepth, int threads)
 			throws MalformedURLException {
 		final int maxDomainPerCrawl = 5;
-		
-		Crawler crawler = new Crawler(seed, storePath, urlPoolFile, true,
-				false, maxDomainPerCrawl, null);
+
+		Crawler crawler = new Crawler(null, storePath, urlPoolFile, true, false,
+				maxDomainPerCrawl, null);
 		crawler.crawl(maxDepth, threads);
 	}
 }

@@ -48,6 +48,7 @@ public class Crawler extends Thread {
 	public Thread topoThread;
 	private boolean notAddingNew = false;
 	private final boolean displayStatus, verbose;
+	private long poolSize = 0;
 	String seedHost;
 	String storePath;
 	final int maxDomainPerCrawl;
@@ -61,10 +62,9 @@ public class Crawler extends Thread {
 	 *             invalid seed url
 	 */
 
-	public Crawler(String seed, String storePath, 
-			String urlPoolFile, boolean displayStatus, boolean verbose,
-			int maxDomainPerCrawl, String cachePath)
-			throws MalformedURLException {
+	public Crawler(String seed, String storePath, String urlPoolFile,
+			boolean displayStatus, boolean verbose, int maxDomainPerCrawl,
+			String cachePath) throws MalformedURLException {
 
 		this.displayStatus = displayStatus;
 		this.verbose = displayStatus && verbose;
@@ -76,9 +76,9 @@ public class Crawler extends Thread {
 		if (displayStatus)
 			util.writeLog("Loading seen URLs");
 		seenUrls = new ConcurrentSkipListSet<String>();
-	
-		//TODO: load seen URLS from file
-		
+
+		// TODO: load seen URLS from file
+
 		if (displayStatus) {
 			util.writeLog("Loaded " + seenUrls.size() + " seen urls");
 			util.writeLog("Loading URL Pool");
@@ -92,14 +92,16 @@ public class Crawler extends Thread {
 			util.writeLog("Populated URL pool with " + urlPool.size()
 					+ " Domains and " + urlPoolSize + " URLs");
 
-		topo = new TopologyOutputController(new File(storePath
-				+ File.separator + "TopologyLinkFile"), new File(
-						storePath + File.separator + "TopologyURLFile"));
+		topo = new TopologyOutputController(new File(storePath + File.separator
+				+ "TopologyLinkFile"), new File(storePath + File.separator
+				+ "TopologyURLFile"));
 
-		PageLW seedPage = new PageLW();
-		seedPage.setPage(seed);
-		seedHost = seedPage.host;
-		addPage(seedPage);
+		if (seed != null) {
+			PageLW seedPage = new PageLW();
+			seedPage.setPage(seed);
+			seedHost = seedPage.host;
+			addPage(seedPage);
+		}
 	}
 
 	private long loadPoolURLs(File source) {
@@ -145,8 +147,8 @@ public class Crawler extends Thread {
 		PrintWriter writer;
 		crawlerRunning.set(false);
 		try {
-			writer = new PrintWriter(storePath + File.separator
-					+ "urlPool", "UTF-8");
+			writer = new PrintWriter(storePath + File.separator + "urlPool",
+					"UTF-8");
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			e.printStackTrace();
 			return;
@@ -183,8 +185,8 @@ public class Crawler extends Thread {
 		long count = 0;
 
 		for (String f : source.list()) {
-			for (File file : new File(source.getAbsolutePath()
-					+ File.separator + f).listFiles()) {
+			for (File file : new File(source.getAbsolutePath() + File.separator
+					+ f).listFiles()) {
 
 				if (file.isFile())
 					seenUrls.add(file.getName().substring(0, 32));
@@ -212,6 +214,7 @@ public class Crawler extends Thread {
 		}
 		// add the PageLW to the right domain's Vector
 		urlPool.get(page.host).add(page);
+		++poolSize;
 	}
 
 	private PageLW getRandomURL() {
@@ -226,6 +229,7 @@ public class Crawler extends Thread {
 		} while (v.size() < 0 && urlPool.size() > 0);
 
 		p = v.remove(0);
+		--poolSize;
 		if (v.size() == 0) {
 			urlPool.remove(p.host);
 		}
@@ -249,7 +253,7 @@ public class Crawler extends Thread {
 
 			if (crawlerRunning.get() && workerThreads.size() < maxThreads) {
 				PageWorkerThread pwt = new PageWorkerThread(seenUrls, topo,
-						seedHost, cachePath,storePath);
+						seedHost, cachePath, storePath);
 				Thread t = new Thread(pwt);
 				workerThreads.put(pwt, t);
 				t.start();
@@ -281,9 +285,10 @@ public class Crawler extends Thread {
 						}
 					}
 					polledPage = pwt.getKey().pagesOut.poll();
-					if (requestedPages.size() % 20 == 0)
-						util.writeLog("R: " + requestedPages.size() + "\tP: "
-								+ urlPool.size());
+					if (poolSize % 20 == 0)
+						util.writeLog("Requested Pages: "
+								+ requestedPages.size() + "\tPool Size: "
+								+ poolSize + "\tDomains: " + urlPool.size());
 
 				}
 

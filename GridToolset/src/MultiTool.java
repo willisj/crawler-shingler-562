@@ -37,7 +37,7 @@ public class MultiTool {
 
 		final String helpBlock = "Crawler Shingler Tool -- V 0.1 \n\n"
 				+ "\tUSAGE\n"
-				+ "\t\tjava -jar MultiTool.jar crawl <seed> <sessionPath> <urlPoolFile> <seenURLsFile> \n"
+				+ "\t\tjava -jar MultiTool.jar crawl <sessionPath> <urlPoolFile> <requestedURLsFile>\n"
 				+ "\t\tjava -jar MultiTool.jar shingle <path-to-file>.pgf \n"
 				+ "\t\tjava -jar MultiTool.jar compare <path-to-file-1> <path-to-file-2>";
 
@@ -45,23 +45,23 @@ public class MultiTool {
 
 			if (args[0].equals("crawl")) {
 
-				if (new File(args[2]).exists()) // check that the file exists
+				if (new File(args[1]).exists()) // check that the file exists
 					System.err.println("Error: store path already exists \""
 							+ args[2] + "\"");
+				else if (!new File(args[2]).exists()) // check that the file
+														// exists
+					System.err.println("Error: file not found \"" + args[2]
+							+ "\"");
 				else if (!new File(args[3]).exists()) // check that the file
 														// exists
 					System.err.println("Error: file not found \"" + args[3]
 							+ "\"");
-				else if (!new File(args[4]).exists()) // check that the file
-														// exists
-					System.err.println("Error: file not found \"" + args[4]
-							+ "\"");
 				else {
-					new File(args[2]).mkdirs();
+					new File(args[1]).mkdirs(); // create the store directory
 
 					try {
-						CrawlerIface.startCrawler(args[1], args[2], args[3],
-								args[4], 1, 5);
+						CrawlerIface.startCrawler( args[1], args[2],
+								args[3], 3, 5);
 					} catch (MalformedURLException e) {
 						System.err.println("Bad seed URL.");
 					}
