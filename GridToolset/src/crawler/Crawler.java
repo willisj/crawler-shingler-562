@@ -245,19 +245,25 @@ public class Crawler extends Thread {
 	 */
 	public Vector<String> crawl(int maxDepth, int maxThreads) {
 
+		long lastPrint = 0;
+		int workerThreadsWithTasks = 0;
+
 		topoThread = new Thread(topo);
 		topoThread.start();
+
 		// Set up the worker threads
 		workerThreads = new ConcurrentHashMap<PageWorkerThread, Thread>();
 		crawlerRunning.set(true);
 		while (crawlerRunning.get() || workerThreads.size() > 0) {
 
-			if (crawlerRunning.get() && workerThreads.size() < maxThreads) {
+			if (crawlerRunning.get() && workerThreads.size() < maxThreads
+					&& urlPool.size() > 0) {
 				PageWorkerThread pwt = new PageWorkerThread(seenUrls, topo,
 						seedHost, cachePath, storePath);
 				Thread t = new Thread(pwt);
 				workerThreads.put(pwt, t);
 				t.start();
+				workerThreadsWithTasks++;
 			}
 
 			// pwt - page worker thread
@@ -270,6 +276,10 @@ public class Crawler extends Thread {
 					util.writeLog("Worker Thread Crashed or Timed Out", true);
 					pwt.getKey().interrupt();
 					workerThreads.remove(pwt.getKey());
+
+					if (--workerThreadsWithTasks == 0 && urlPool.size() == 0) {
+						crawlerRunning.set(false);
+					}
 
 					continue;
 				}
@@ -290,13 +300,13 @@ public class Crawler extends Thread {
 					if (crawlerRunning.get() && poolSize == 0) {
 						crawlerRunning.set(false);
 					}
+				}
 
-					if (poolSize % 5 == 0)
-						util.writeLog("Req: " + requestedPages.size()
-								+ "\tPool: " + poolSize + "\tDIP: "
-								+ urlPool.size() + "\tThrd: "
-								+ workerThreads.size());
-
+				if (System.currentTimeMillis() - lastPrint > 1000) {
+					lastPrint = System.currentTimeMillis();
+					util.writeLog("Req: " + requestedPages.size() + "\tPool: "
+							+ poolSize + "\tDIP: " + urlPool.size()
+							+ "\tThrd: " + workerThreads.size());
 				}
 
 				// also mark the recieved urls as requested
@@ -328,13 +338,24 @@ public class Crawler extends Thread {
 			util.writeLog(requestedPages.size() + " pages retreived");
 		}
 
-		// display the current cache size
-		// if (displayStatus && requestedPages.size() > 0)
-		// util.writeLog("Cache Size: " + (util.folderSize(cachePath) / 1024) /
-		// 1024 + "MB");
+		boolean go;
+		do {
+			topo.running = false;
+			for (Entry<PageWorkerThread, Thread> pwt : workerThreads.entrySet()) {
+				pwt.getKey().running = false;
+				pwt.getValue().stop();
+			}
 
-		topoThread.stop();
+			go = false;
+
+			for (Entry<PageWorkerThread, Thread> pwt : workerThreads.entrySet()) {
+				if (pwt.getValue().isAlive()) {
+					go = true;
+				}
+			}
+
+		} while (go);
+
 		return requestedPages;
 	}
-
 }

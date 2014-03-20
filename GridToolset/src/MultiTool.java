@@ -47,12 +47,12 @@ public class MultiTool {
 
 				if (new File(args[1]).exists()) // check that the session path doesn't exist
 					System.err.println("Error: store path already exists \""
-							+ args[2] + "\"");
+							+ args[1] + "\"");
 				else if (!new File(args[2]).exists()) // check that the file
 														// exists
 					System.err.println("Error: file not found \"" + args[2]
 							+ "\"");
-				else if (!new File(args[3]).exists()) // check that the file
+				else if (!new File(args[2]).exists()) // check that the file
 														// exists
 					System.err.println("Error: file not found \"" + args[3]
 							+ "\"");

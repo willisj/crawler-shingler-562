@@ -19,6 +19,7 @@ public class TopologyOutputController implements Runnable {
 
 	static Connection conn = null;
 	static int MINSENDSIZE = 50;
+	public boolean running;
 
 	Queue<String> seenLinksToProcess = new ConcurrentLinkedQueue<String>();
 	Queue<String> newLinksToProcess = new ConcurrentLinkedQueue<String>();
@@ -36,7 +37,7 @@ public class TopologyOutputController implements Runnable {
 
 	public void run() {
 		String q;
-
+		running = true;
 		PrintWriter linkWriter, urlWriter;
 		try {
 			linkWriter = new PrintWriter(new FileOutputStream(linkFile), true);
@@ -47,7 +48,7 @@ public class TopologyOutputController implements Runnable {
 		}
 
 		try {
-			while (true) {
+			while (running) {
 				q = seenLinksToProcess.poll();
 				if (q != null) {
 					seen.put(hashURL(q), q);

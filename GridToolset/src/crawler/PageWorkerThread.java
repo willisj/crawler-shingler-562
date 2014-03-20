@@ -39,6 +39,7 @@ public class PageWorkerThread extends Thread {
 	final boolean behaviourSkipOnCacheMiss = false;
 	final boolean behaviourCacheRequests = false;
 	final boolean verbose = false;
+	public boolean running = true;
 	final String cachePath;
 	final String seedHost;
 	final String storePath;
@@ -54,7 +55,7 @@ public class PageWorkerThread extends Thread {
 		this.cachePath = cachePath;
 		this.topo = topo;
 		pagesIn = new ConcurrentLinkedQueue<PageLW>();
-		lastUpdate.set(System.currentTimeMillis() + (3 * 1000)); // give 3 sec
+		lastUpdate.set(System.currentTimeMillis() + 10 * 1000); // give 3 sec
 																	// for the
 																	// thread to
 																	// check
@@ -66,30 +67,30 @@ public class PageWorkerThread extends Thread {
 
 	public void run() {
 		PageLW page;
-		while (true) {
-			lastUpdate.set(System.currentTimeMillis());
-			page = pagesIn.poll();
-			if (page != null) {
-				URL url = requestPage(page);
-				if (url == null)
-					continue; // ToDo: count this
+		while (running) {
 
-				if (!findChildren(page, url)) {
-					util.writeLog("findChildren failed for " + page.url);
-					continue;
-				}
+			try {
+				waitingForUrls.set(true);
+				lastUpdate.set(System.currentTimeMillis());
+				page = pagesIn.poll();
+				if (page != null) {
+					URL url = requestPage(page);
+					if (url == null)
+						continue; // ToDo: count this
 
-				completeUrls.add(page.url);
-			} else {
-				try {
-					waitingForUrls.set(true);
+					if (!findChildren(page, url)) {
+						util.writeLog("findChildren failed for " + page.url);
+						continue;
+					}
+
+					completeUrls.add(page.url);
+				} else {
 					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					util.writeLog("Worker Thread Interupted", true);
-					return;
 				}
+			} catch (InterruptedException e) {
+				util.writeLog("Worker Thread Interupted", true);
+				return;
 			}
-
 		}
 	}
 
