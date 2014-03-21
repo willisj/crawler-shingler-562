@@ -1,5 +1,8 @@
 package toolset;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 
 import crawler.Crawler;
@@ -25,5 +28,24 @@ public class CrawlerIface {
 				maxDomainPerCrawl, null);
 		
 		crawler.crawl(maxDepth, threads);
+		
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter(urlPoolFile, "UTF-8");
+			for(String s: crawler.uniqueDomains)
+				writer.println(s);
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally{
+			if(writer!=null)
+				writer.close();
+		}
+		
 	}
 }

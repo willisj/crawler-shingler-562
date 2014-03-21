@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Vector;
@@ -40,6 +41,9 @@ public class Crawler extends Thread {
 
 	// URLs that have already been scraped
 	ConcurrentSkipListSet<String> seenUrls;
+
+	// Unique Domain List
+	public HashSet<String> uniqueDomains = new HashSet<String>();
 
 	private static Random rand = new Random();
 	public AtomicBoolean crawlerRunning = new AtomicBoolean(false);
@@ -209,6 +213,7 @@ public class Crawler extends Thread {
 		// does the domain exist?
 		seenUrls.add(page.urlHash);
 		if (!urlPool.containsKey(page.host)) {
+			uniqueDomains.add(page.host);
 			if (verbose)
 				util.writeLog("Domain Found: " + page.host);
 			urlPool.put(page.host, new Vector<PageLW>()); // if not add it
@@ -235,6 +240,7 @@ public class Crawler extends Thread {
 			urlPool.remove(p.host);
 		}
 
+		
 		return p;
 	}
 
@@ -326,9 +332,7 @@ public class Crawler extends Thread {
 				if (!crawlerRunning.get() && pwt.getKey().checkWaiting()) {
 					pwt.getValue().interrupt();
 				}
-
 			}
-
 		}
 
 		// calculate and display the running time
