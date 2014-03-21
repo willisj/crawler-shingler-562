@@ -20,6 +20,10 @@ wget https://raw.github.com/willisj/crawler-shingler-562/master/GridToolset/run.
 echo "Downloading the test file"
 wget https://raw.github.com/willisj/crawler-shingler-562/master/GridToolset/1591C3BFB24BC0E6F799AC27CEF9533C.pgf
 
+echo "Setting up crawler test"
+echo "http://uwindsor.ca" > urlPool
+touch domainOutput
+
 cd ..
 
 echo "Setting script +x ..."

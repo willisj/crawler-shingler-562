@@ -2,6 +2,10 @@
 
 set -x #echo on
 
+# crawl uwindsor.ca
+java -jar MultiTool.jar crawl crawlDir urlPool domainOutput
+
+
 #take the input file and shingle it
 java -jar MultiTool.jar shingle 1591C3BFB24BC0E6F799AC27CEF9533C.pgf 7 > allShingles
 
