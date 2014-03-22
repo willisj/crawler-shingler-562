@@ -77,8 +77,11 @@ public class MultiTool {
 					System.err.println("Error: invalid shingle size");
 				else {
 					PageLW page = PageLW.load(new File(args[1]));
-					for (String s : Shingler.shingle(page.cleanSource,
-							Integer.valueOf(args[2])))
+					String [] shingles = Shingler.shingle(page.cleanSource,Integer.valueOf(args[2]));
+					if(shingles == null || shingles .length == 0)
+						return;
+								
+					for (String s : shingles)
 						System.out.println(s);
 				}
 			} else if (args[0].equals("compare")) {
