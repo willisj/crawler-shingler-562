@@ -71,7 +71,7 @@ public class MultiTool {
 
 				// SHINGLE MODE
 				if (!new File(args[1]).exists()) // check that the file exists
-					System.err.println("Error: file not found \"" + args[2]
+					System.err.println("Error: file not found \"" + args[1]
 							+ "\"");
 				else if (Integer.valueOf(args[2]) <= 0)
 					System.err.println("Error: invalid shingle size");
