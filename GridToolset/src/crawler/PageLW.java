@@ -80,9 +80,9 @@ public class PageLW implements Serializable {
 			ois.close();
 
 		} catch (Exception ex) {
-			//path.delete();
+			path.delete();
 			util.writeLog(
-					"Found file with stream corruption: " + path.toString(),
+					"Deleting file with stream corruption: " + path.toString(),
 					true);
 			return null;
 		}
