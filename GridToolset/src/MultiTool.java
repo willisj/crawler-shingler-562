@@ -37,7 +37,7 @@ public class MultiTool {
 
 		final String helpBlock = "Crawler Shingler Tool -- V 0.1 \n\n"
 				+ "\tUSAGE\n"
-				+ "\t\tjava -jar MultiTool.jar crawl <sessionPath> <urlPoolFile> <requestedURLsFile>\n"
+				+ "\t\tjava -jar MultiTool.jar crawl <sessionPath> <http://seedDomain> <pagesPerCrawl> \n"
 				+ "\t\tjava -jar MultiTool.jar shingle <path-to-file>.pgf \n"
 				+ "\t\tjava -jar MultiTool.jar compare <path-to-file-1> <path-to-file-2>";
 
@@ -48,20 +48,12 @@ public class MultiTool {
 				if (new File(args[1]).exists()) // check that the session path doesn't exist
 					System.err.println("Error: store path already exists \""
 							+ args[1] + "\"");
-				else if (!new File(args[2]).exists()) // check that the file
-														// exists
-					System.err.println("Error: file not found \"" + args[2]
-							+ "\"");
-				else if (!new File(args[2]).exists()) // check that the file
-														// exists
-					System.err.println("Error: file not found \"" + args[3]
-							+ "\"");
 				else {
 					new File(args[1]).mkdirs(); // create the store directory
 
 					try {
 						CrawlerIface.startCrawler( args[1], args[2],
-								args[3], 3, 5);
+								args[1]+"/foundDomains.txt", 1, 5, Integer.parseInt(args[3]));
 					} catch (MalformedURLException e) {
 						System.err.println("Bad seed URL.");
 					}

@@ -19,33 +19,34 @@ public class CrawlerIface {
 	 * 
 	 * */
 
-	public static void startCrawler(String storePath, String urlPoolFile,
-			String seenURLsPool, int maxDepth, int threads)
+	public static void startCrawler(String storePath, String seed,
+			String urlPoolFile, int maxDepth, int threads, int maxPagesPerCrawl)
 			throws MalformedURLException {
-		final int maxDomainPerCrawl = 5;
-
-		Crawler crawler = new Crawler(null, storePath, urlPoolFile, true, false,
-				maxDomainPerCrawl, null);
 		
-		crawler.crawl(maxDepth, threads);
+		final int maxDomainPerCrawl = 10;
+
+		Crawler crawler = new Crawler(seed, storePath, null, true,
+				true, maxDomainPerCrawl, null,maxPagesPerCrawl);
 		
 		PrintWriter writer = null;
+		crawler.crawl(maxDepth, threads);
+
+		
 		try {
 			writer = new PrintWriter(urlPoolFile, "UTF-8");
-			for(String s: crawler.uniqueDomains)
+			for (String s : crawler.uniqueDomains)
 				writer.println(s);
-			
+
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		finally{
-			if(writer!=null)
+		} finally {
+			if (writer != null)
 				writer.close();
 		}
-		
+
 	}
 }

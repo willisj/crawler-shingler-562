@@ -55,7 +55,7 @@ public class PageWorkerThread extends Thread {
 		this.cachePath = cachePath;
 		this.topo = topo;
 		pagesIn = new ConcurrentLinkedQueue<PageLW>();
-		lastUpdate.set(System.currentTimeMillis() + 10 * 1000); // give 3 sec
+		lastUpdate.set(System.currentTimeMillis() + (10 * 1000)); // give 3 sec
 																	// for the
 																	// thread to
 																	// check

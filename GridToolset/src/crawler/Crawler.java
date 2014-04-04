@@ -55,8 +55,8 @@ public class Crawler extends Thread {
 	private long poolSize = 0;
 	String seedHost;
 	String storePath;
-	final int maxDomainPerCrawl;
-	public int threadTimeout = 10;// in seconds
+	final int maxDomainPerCrawl, maxPagesPerCrawl;
+	public int threadTimeout = 15;// in seconds
 	String cachePath;
 
 	/**
@@ -68,14 +68,15 @@ public class Crawler extends Thread {
 
 	public Crawler(String seed, String storePath, String urlPoolFile,
 			boolean displayStatus, boolean verbose, int maxDomainPerCrawl,
-			String cachePath) throws MalformedURLException {
+			String cachePath, int maxPagesPerCrawl)
+			throws MalformedURLException {
 
 		this.displayStatus = displayStatus;
 		this.verbose = displayStatus && verbose;
 		this.maxDomainPerCrawl = maxDomainPerCrawl;
 		this.cachePath = cachePath;
 		this.storePath = storePath;
-
+		this.maxPagesPerCrawl = maxPagesPerCrawl;
 		// load seen urls
 		if (displayStatus)
 			util.writeLog("Loading seen URLs");
@@ -205,7 +206,8 @@ public class Crawler extends Thread {
 		if (notAddingNew)
 			return;
 
-		if (urlPool.size() >= maxDomainPerCrawl) {
+		if (urlPool.size() >= maxDomainPerCrawl
+				|| requestedPages.size() >= maxPagesPerCrawl) {
 			notAddingNew = true;
 			return;
 		}
@@ -219,8 +221,10 @@ public class Crawler extends Thread {
 			urlPool.put(page.host, new Vector<PageLW>()); // if not add it
 		}
 		// add the PageLW to the right domain's Vector
-		urlPool.get(page.host).add(page);
-		++poolSize;
+		if (page.host.equals(seedHost)) {
+			urlPool.get(page.host).add(page);
+			++poolSize;
+		}
 	}
 
 	private PageLW getRandomURL() {
@@ -233,15 +237,15 @@ public class Crawler extends Thread {
 					.size())]);
 
 		} while (v.size() < 0 && urlPool.size() > 0);
-
-		p = v.remove(0);
-		--poolSize;
-		if (v.size() == 0) {
-			urlPool.remove(p.host);
+		if (!v.isEmpty()) {
+			p = v.remove(0);
+			--poolSize;
+			if (v.size() == 0) {
+				urlPool.remove(p.host);
+			}
+			return p;
 		}
-
-		
-		return p;
+		return null;
 	}
 
 	/**
@@ -253,14 +257,14 @@ public class Crawler extends Thread {
 
 		long lastPrint = 0;
 		int workerThreadsWithTasks = 0;
-
+		PageLW tempUrl;
 		topoThread = new Thread(topo);
 		topoThread.start();
 
 		// Set up the worker threads
 		workerThreads = new ConcurrentHashMap<PageWorkerThread, Thread>();
 		crawlerRunning.set(true);
-		while (crawlerRunning.get() || workerThreads.size() > 0) {
+		while ((crawlerRunning.get() || workerThreads.size() > 0 ) && requestedPages.size() <= maxPagesPerCrawl) {
 
 			if (crawlerRunning.get() && workerThreads.size() < maxThreads
 					&& urlPool.size() > 0) {
@@ -324,9 +328,11 @@ public class Crawler extends Thread {
 
 				// as long as this thread's in-queue isn't full
 				if (crawlerRunning.get() && pwt.getKey().pagesIn.size() < 3
-						&& urlPool.size() > 0)
-					pwt.getKey().pagesIn.add(getRandomURL());// add a url to it
-
+						&& urlPool.size() > 0) {
+					tempUrl = getRandomURL();
+					if (tempUrl != null)
+						pwt.getKey().pagesIn.add(tempUrl);// add a url to it
+				}
 				// if we're shutting down and this thread's queue is done
 				// working so kill it
 				if (!crawlerRunning.get() && pwt.getKey().checkWaiting()) {
