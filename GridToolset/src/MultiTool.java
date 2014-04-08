@@ -40,7 +40,7 @@ public class MultiTool {
 				+ "\t\tjava -jar MultiTool.jar crawl <sessionPath> <http://seedDomain> <pagesPerCrawl> \n"
 				+ "\t\tjava -jar MultiTool.jar shingle <path-to-file>.pgf \n"
 				+ "\t\tjava -jar MultiTool.jar info <path-to-file>.pgf \n"
-				+ "\t\tjava -jar MultiTool.jar compare <path-to-file-1> <path-to-file-2>";
+				+ "\t\tjava -jar MultiTool.jar compare <path-to-main-file> <path-to-file-which-contains-a-list-of-filenames>";
 
 		if (args.length > 0) {
 
@@ -92,26 +92,42 @@ public class MultiTool {
 					System.out.println(page.url + "\t\"" + page.title + "\"");
 				}
 			} else if (args[0].equals("compare")) {
+
 				// SHINGLE MODE
-				if (!new File(args[1]).exists()) // check that the file exists
+				if (!new File(args[1]).exists()) // check that the file
+													// exists
 					System.err.println("Error: file not found \"" + args[1]
 							+ "\"");
 				else if (!new File(args[2]).exists()) // check that the file
 														// exists
 					System.err.println("Error: file not found \"" + args[2]
 							+ "\"");
-				else
+				else {
+					String[] mainFile, fileList, tempFile;
 					try {
-						System.out.println(ShingleComparator.compare(
-								readFile(args[1], StandardCharsets.UTF_8)
-										.split("\\n"),
-								readFile(args[2], StandardCharsets.UTF_8)
-										.split("\\n")));
+						mainFile = readFile(args[1], StandardCharsets.UTF_8)
+								.split("\\n");
+						fileList = readFile(args[2], StandardCharsets.UTF_8)
+								.split("\\n");
+						for (String fileName : fileList) {
+							if (new File(fileName).exists())
+								System.out.println(fileName.replaceAll(".shg",
+										"")
+										+ "\t"
+										+ ShingleComparator.compare(
+												mainFile,
+												readFile(fileName,
+														StandardCharsets.UTF_8)
+														.split("\\n")));
+
+						}
 					} catch (IOException e) {
 						System.err
 								.println("There was a problem reading from file: "
 										+ e.getMessage());
 					}
+				}
+
 			} else
 				System.out.println(helpBlock);
 		} else
