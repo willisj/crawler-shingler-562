@@ -40,7 +40,7 @@ public class MultiTool {
 				+ "\t\tjava -jar MultiTool.jar crawl <sessionPath> <http://seedDomain> <pagesPerCrawl> \n"
 				+ "\t\tjava -jar MultiTool.jar shingle <path-to-file>.pgf \n"
 				+ "\t\tjava -jar MultiTool.jar info <path-to-file>.pgf \n"
-				+ "\t\tjava -jar MultiTool.jar compare <path-to-main-file> <path-to-file-which-contains-a-list-of-filenames>";
+				+ "\t\tjava -jar MultiTool.jar compare <path-to-file-which-contains-a-list-of-filenames>";
 
 		if (args.length > 0) {
 
@@ -98,25 +98,27 @@ public class MultiTool {
 													// exists
 					System.err.println("Error: file not found \"" + args[1]
 							+ "\"");
-				else if (!new File(args[2]).exists()) // check that the file
-														// exists
-					System.err.println("Error: file not found \"" + args[2]
-							+ "\"");
 				else {
-					String[] mainFile, fileList, tempFile;
+					String[] jobList, tempFile, splitStr;
+					String file1, file2;
 					try {
-						mainFile = readFile(args[1], StandardCharsets.UTF_8)
+						jobList = readFile(args[2], StandardCharsets.UTF_8)
 								.split("\\n");
-						fileList = readFile(args[2], StandardCharsets.UTF_8)
-								.split("\\n");
-						for (String fileName : fileList) {
-							if (new File(fileName).exists())
-								System.out.println(fileName.replaceAll(".shg",
+						for (String job: jobList) {
+							splitStr = job.split(" ");
+							file1 = splitStr[0];
+							file2 = splitStr[1];
+							
+							if (new File(file1).exists() && new File(file2).exists())
+								System.out.println(file1.replaceAll(".shg",
 										"")
 										+ "\t"
-										+ ShingleComparator.compare(
-												mainFile,
-												readFile(fileName,
+										+ file2.replaceAll(".shg", "")
+										+ "\t" + ShingleComparator.compare(
+												readFile(file1,
+														StandardCharsets.UTF_8)
+														.split("\\n"),
+												readFile(file2,
 														StandardCharsets.UTF_8)
 														.split("\\n")));
 
